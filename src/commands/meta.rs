@@ -7,7 +7,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 #[command]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
-    msg.channel_id.say(&ctx.http, "Pong!").await?;
+    //msg.channel_id.say(&ctx.http, "Pong!").await?;
 
     let start = SystemTime::now();
     let since_the_epoch = start

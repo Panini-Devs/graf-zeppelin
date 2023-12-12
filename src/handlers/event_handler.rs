@@ -6,7 +6,9 @@ pub mod event_handler {
     use serenity::model::gateway::Ready;
     use serenity::all::{Context, ResumedEvent};
     use tracing::info;
-    pub struct Handler;
+    pub struct Handler {
+        pub database: sqlx::SqlitePool,
+    }
 
     #[async_trait]
     impl EventHandler for Handler {
@@ -16,14 +18,7 @@ pub mod event_handler {
         // Event handlers are dispatched through a threadpool, and so multiple events can be dispatched
         // simultaneously.
         async fn message(&self, ctx: Context, msg: Message) {
-            if msg.content == "!ping" {
-                // Sending a message can fail, due to a network error, an authentication error, or lack
-                // of permissions to post in the channel, so log to stdout when some error happens,
-                // with a description of it.
-                if let Err(why) = msg.channel_id.say(&ctx.http, "Pong!").await {
-                    println!("Error sending message: {why:?}");
-                }
-            }
+            // TODO: add advanced command handler + database connection
         }
 
         // Set a handler to be called on the `ready` event. This is called when a shard is booted, and

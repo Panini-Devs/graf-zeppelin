@@ -18,7 +18,6 @@ use crate::commands::math::*;
 use crate::commands::meta::*;
 use crate::commands::owner::*;
 
-
 pub struct ShardManagerContainer;
 
 impl TypeMapKey for ShardManagerContainer {
@@ -52,6 +51,24 @@ async fn main() {
 
     let http = Http::new(&token);
 
+    // Initiate a connection to the database file, creating the file if required.
+    let database = sqlx::sqlite::SqlitePoolOptions::new()
+    .max_connections(5)
+    .connect_with(
+        sqlx::sqlite::SqliteConnectOptions::new()
+            .filename("database.sqlite")
+            .create_if_missing(true),
+    )
+    .await
+    .expect("Couldn't connect to database");
+
+    // Run migrations, which updates the database's schema to the latest version.
+    sqlx::migrate!("./migrations").run(&database).await.expect("Couldn't run database migrations");
+
+    let handler = Handler {
+        database
+    };
+
     // We will fetch your bot's owners and id
     let (owners, _bot_id) = match http.get_current_application_info().await {
         Ok(info) => {
@@ -72,7 +89,7 @@ async fn main() {
     let mut client =
         Client::builder(&token, intents)
         .framework(framework)
-        .event_handler(Handler).await.expect("Err creating client");  
+        .event_handler(handler).await.expect("Err creating client");  
     {
         let mut data = client.data.write().await;
         data.insert::<ShardManagerContainer>(client.shard_manager.clone());
