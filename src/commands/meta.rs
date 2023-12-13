@@ -16,13 +16,11 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 
     let in_ms = since_the_epoch.as_millis();
 
-    let latency = in_ms - msg.timestamp.timestamp_millis() as u128;
+    let latency = (msg.timestamp.timestamp_millis() as u128) - in_ms;
 
     let embed = CreateEmbed::new()
         .title("Pong!")
-        .field("Latency", format!("Ping: {latency}ms"), false)
-
-        ;
+        .field("Latency", format!("Ping: {latency}ms"), false);
         //.footer()
 
     let builder = CreateMessage::new()

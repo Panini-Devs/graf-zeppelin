@@ -1,19 +1,19 @@
 -- guild settings schema
 CREATE TABLE IF NOT EXISTS guild_settings (
-    guild_id BIGINT NOT NULL UNIQUE,
-    owner_id INTEGER NOT NULL,
+    guild_id BIGINT NOT NULL,
+    owner_id BIGINT NOT NULL,
     automod_enabled INTEGER NOT NULL DEFAULT 0,
-    message_log_channel_id INTEGER,
+    message_log_channel_id BIGINT,
     message_log_enabled INTEGER NOT NULL DEFAULT 0,
-    mod_log_channel_id INTEGER,
+    mod_log_channel_id BIGINT,
     mod_log_enabled INTEGER NOT NULL DEFAULT 0,
-    welcome_channel_id INTEGER,
+    welcome_channel_id BIGINT,
     welcome_enabled INTEGER NOT NULL DEFAULT 0,
     welcome_message TEXT,
     prefix TEXT NOT NULL DEFAULT "-",
     mute_style TEXT NOT NULL DEFAULT "timeout",
     mute_duration INTEGER NOT NULL DEFAULT 60000,
-    mute_role_id INTEGER,
+    mute_role_id BIGINT,
     boosts INTEGER NOT NULL DEFAULT 0,
     boost_rewards_enabled INTEGER NOT NULL DEFAULT 0, -- role ids (to account for lists of roles) will be stored in another table
 	PRIMARY KEY(guild_id)
@@ -21,17 +21,17 @@ CREATE TABLE IF NOT EXISTS guild_settings (
 
 
 -- user profile schema
-CREATE TABLE user_profile (
+CREATE TABLE IF NOT EXISTS user_profile (
     user_id BIGINT NOT NULL,
-    guild_id BIGINT NOT NULL,
+    guild_id BIGINT NOT NULL DEFAULT 0,
     first_joined_at TEXT NOT NULL,
     latest_joined_at TEXT NOT NULL,
-    commands_ran INTEGER NOT NULL,
+    commands_ran INTEGER NOT NULL DEFAULT 0,
   	PRIMARY KEY(user_id, guild_id)
 );
 
 -- modlog schema
-CREATE TABLE mod_log (
+CREATE TABLE IF NOT EXISTS mod_log (
     id BIGINT NOT NULL,
     guild_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
@@ -44,21 +44,21 @@ CREATE TABLE mod_log (
 );
 
 -- admin role schema
-CREATE TABLE admin_roles (
+CREATE TABLE IF NOT EXISTS admin_roles (
     guild_id BIGINT NOT NULL,
     role_id BIGINT NOT NULL,
     PRIMARY KEY (guild_id, role_id)
 );
 
 -- admin user schema
-CREATE TABLE admin_users (
+CREATE TABLE IF NOT EXISTS admin_users (
     guild_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     PRIMARY KEY (guild_id, user_id)
 );
 
 -- bot stats schema
-CREATE TABLE stats (
+CREATE TABLE IF NOT EXISTS bot_stats (
     guild_id BIGINT NOT NULL DEFAULT 0,
     commands_ran BIGINT NOT NULL DEFAULT 0,
     songs_played BIGINT NOT NULL DEFAULT 0,

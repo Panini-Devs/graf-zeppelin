@@ -3,7 +3,7 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
-use crate::ShardManagerContainer;
+use crate::utilities::global_data::ShardManagerContainer;
 
 #[command]
 #[owners_only]
