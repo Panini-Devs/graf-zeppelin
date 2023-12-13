@@ -1,6 +1,6 @@
 -- guild settings schema
 CREATE TABLE IF NOT EXISTS guild_settings (
-    guild_id BIGINT NOT NULL,
+    guild_id BIGINT NOT NULL UNIQUE,
     owner_id BIGINT NOT NULL,
     automod_enabled INTEGER NOT NULL DEFAULT 0,
     message_log_channel_id BIGINT,
