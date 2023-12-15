@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::env;
 use std::collections::HashSet;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use serenity::framework::StandardFramework;
 use serenity::framework::standard::Configuration;
 use serenity::framework::standard::macros::group;
@@ -18,7 +19,7 @@ mod commands;
 mod utilities;
 
 use crate::commands::math::*;
-use crate::commands::meta::*;
+use crate::commands::utilities::*;
 use crate::commands::owner::*;
 
 #[group]
@@ -64,7 +65,8 @@ async fn main() {
     sqlx::migrate!("./migrations").run(&database).await.expect("Couldn't run database migrations");
 
     let handler = Handler {
-        database
+        database,
+        is_loop_running: AtomicBool::new(false),
     };
 
     // We will fetch your bot's owners and id

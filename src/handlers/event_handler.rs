@@ -1,16 +1,21 @@
 pub mod event_handler {
+    use std::sync::Arc;
+    use std::sync::atomic::{Ordering, AtomicBool};
+    use std::time::Duration;
+
     use serenity::async_trait;
     use serenity::builder::CreateAllowedMentions;
     use serenity::client::EventHandler;
     use serenity::gateway::ActivityData;
     use serenity::model::channel::Message;
     use serenity::model::gateway::Ready;
-    use serenity::all::{Context, ResumedEvent, Guild, OnlineStatus, UnavailableGuild, GuildChannel};
+    use serenity::all::{Context, ResumedEvent, Guild, UnavailableGuild, GuildChannel, GuildId};
     use tracing::info;
 
     use crate::utilities::global_data::{DatabaseConnectionContainer, GuildSettingsContainer, GuildSettings};
     pub struct Handler {
         pub database: sqlx::SqlitePool,
+        pub is_loop_running: AtomicBool,
     }
 
     #[async_trait]
@@ -149,13 +154,46 @@ pub mod event_handler {
             info!("Connected to shard {} out of a total of {} shards.", shard_info.id, shard_info.total);
             info!("Connected to the Discord API (version {api_version}) with {r_sessions}/{t_sessions} sessions remaining.");
             info!("Connected to and serving a total of {guild_count} guild(s).");
+        }
 
-            let presence = format!("on {guild_count} guilds | -help");
-            context.set_presence(Some(ActivityData::playing(presence)), OnlineStatus::Online);
+        async fn cache_ready(&self, ctx: Context, guilds: Vec<GuildId>) {
+            println!("Cache built successfully!");
+    
+            // It's safe to clone Context, but Arc is cheaper for this use case.
+            // Untested claim, just theoretically. :P
+            let ctx = Arc::new(ctx);
+    
+            // We need to check that the loop is not already running when this event triggers, as this
+            // event triggers every time the bot enters or leaves a guild, along every time the ready
+            // shard event triggers.
+            //
+            // An AtomicBool is used because it doesn't require a mutable reference to be changed, as
+            // we don't have one due to self being an immutable reference.
+            if !self.is_loop_running.load(Ordering::Relaxed) {
+    
+                // And of course, we can run more than one thread at different timings.
+                let ctx2 = Arc::clone(&ctx);
+                tokio::spawn(async move {
+                    loop {
+                        set_activity(&ctx2, guilds.len());
+                        tokio::time::sleep(Duration::from_secs(3)).await;
+                    }
+                });
+    
+                // Now that the loop is running, we set the bool to true
+                self.is_loop_running.swap(true, Ordering::Relaxed);
+            }
         }
 
         async fn resume(&self, _: Context, _: ResumedEvent) {
             info!("Resumed!");
         }
     }
+
+    fn set_activity(ctx: &Context, guild_count: usize) {
+        let presence = format!("Monitoring a total of {guild_count} guilds | -help");
+        
+        ctx.set_activity(Some(ActivityData::playing(presence)));
+    }
+    
 }
