@@ -23,8 +23,16 @@ use crate::commands::utilities::*;
 use crate::commands::owner::*;
 
 #[group]
-#[commands(multiply, ping, quit)]
+#[commands(multiply, quit)]
 struct General;
+
+#[group]
+#[commands(ping)]
+struct Info;
+
+#[group]
+#[commands(prefix)]
+struct Settings;
 
 #[tokio::main]
 async fn main() {
@@ -86,7 +94,13 @@ async fn main() {
     };
 
     // Create the framework
-    let framework = StandardFramework::new().group(&GENERAL_GROUP);
+    let framework = StandardFramework::new()
+        .help(&HELP)
+        .group(&GENERAL_GROUP)
+        .group(&INFO_GROUP)
+        .group(&SETTINGS_GROUP);
+
+    // Configure the client with the appropriate options
     framework.configure(
         Configuration::new()
         .owners(owners)

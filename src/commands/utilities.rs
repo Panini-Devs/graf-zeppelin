@@ -62,17 +62,41 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-#[command]
-#[description = "Sets the bot's guild prefix or views the prefix."]
+#[command("prefix")]
+//#[aliases("setprefix", "prefixset")]
+#[description = "Sets the bot's guild prefix or views the current prefix."]
+#[usage = "<new prefix> or leave it blank to view the current prefix."]
+//#[required_permissions(ADMINISTRATOR)]
+#[min_args(0)]
+#[max_args(1)]
 async fn prefix(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     if msg.is_private() {
         let embed = CreateEmbed::new()
             .color(0x008b_0000)
             .title("Prefix")
             .description("The bot's default prefix is ```-```")
-            .footer(CreateEmbedFooter::new("Use `-prefix <new prefix>` to change it in a server."));
+            .footer(CreateEmbedFooter::new("Use `-setprefix <new prefix>` to change it in a server."));
 
         msg.channel_id.send_message(ctx, CreateMessage::new().embed(embed)).await?;
+
+        return Ok(());
+    }
+
+    let is_admin = {
+        let author = msg.guild_id.unwrap()
+            .member(&ctx.http, msg.author.id).await.unwrap()
+            .permissions(&ctx.cache).expect("Failed to get permissions").administrator();
+        author.clone()
+    };
+
+    if !is_admin {
+        let embed = CreateEmbed::new()
+            .color(0x008b_0000)
+            .title("Prefix")
+            .description("You must be an administrator to use this command.")
+            .footer(CreateEmbedFooter::new("Use `-prefix <new prefix>` to change it in a server."));
+
+        msg.channel_id.send_message(&ctx.http, CreateMessage::new().embed(embed)).await?;
 
         return Ok(());
     }
@@ -150,6 +174,13 @@ async fn prefix(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             guild_id
         ).execute(&database).await.unwrap();
     }
+
+    let embed = CreateEmbed::new()
+        .color(0x008b_0000)
+        .title("Prefix")
+        .description(format!("Prefix set to ```{new_prefix}```"));
+
+    msg.channel_id.send_message(ctx, CreateMessage::new().embed(embed)).await?;
 
     Ok(())
 }
