@@ -177,6 +177,7 @@ pub mod event_handler {
                     loop {
                         set_activity(&ctx2, guilds.len());
                         tokio::time::sleep(Duration::from_secs(3)).await;
+                        
                     }
                 });
     

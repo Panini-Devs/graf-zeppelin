@@ -60,8 +60,3 @@ pub async fn dispatch_error(context: &Context, message: &Message, error: Dispatc
         _ => tracing::warn!("Unhandled Dispatch error: {:?}", error)
     }
 }
-
-#[hook]
-pub async fn prefix_only(context: &Context, message: &Message) {
-    drop(message.channel_id.say(&context, "For info on my features, run the help command.").await);
-}

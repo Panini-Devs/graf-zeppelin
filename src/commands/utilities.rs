@@ -6,8 +6,9 @@ use serenity::framework::standard::{CommandResult, help_commands, Args, HelpOpti
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 use chrono::{Duration, Utc};
+use tracing::info;
 
-use crate::utilities::global_data::{ShardManagerContainer, GuildSettingsContainer, DatabaseConnectionContainer, GuildSettings};
+use crate::utilities::global_data::{ShardManagerContainer, GuildSettingsContainer, GuildSettings, DatabaseConnectionContainer};
 
 #[command]
 #[description= "Checks Discord's API / message latency."]
@@ -168,11 +169,13 @@ async fn prefix(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         let database = data.get::<DatabaseConnectionContainer>().unwrap().clone();
         let guild_id = msg.guild_id.unwrap().get() as i64;
 
-        sqlx::query!(
+        let info = sqlx::query!(
             "UPDATE guild_settings SET prefix = ? WHERE guild_id = ?",
             new_prefix,
             guild_id
-        ).execute(&database).await.unwrap();
+        ).execute(&database).await.unwrap().rows_affected();
+
+        info!("Prefix set to {new_prefix} for guild {guild_id}, {info} rows affected");
     }
 
     let embed = CreateEmbed::new()
