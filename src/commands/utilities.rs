@@ -161,6 +161,9 @@ async fn prefix(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         let guild_setting = lock.entry(msg.guild_id.unwrap().get()).or_insert(setting);
         guild_setting.prefix = set;
 
+        let setted = &guild_setting.prefix;
+        info!("Prefix set to {setted} for guild {}", msg.guild_id.unwrap().get());
+
         guild_setting.prefix.clone()
     };
 

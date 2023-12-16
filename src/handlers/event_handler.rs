@@ -96,14 +96,19 @@ pub mod event_handler {
                 owner_id
             ).execute(&database).await.unwrap();
 
+            let fetched_guild = sqlx::query!(
+                "SELECT * FROM guild_settings WHERE guild_id = ?",
+                guild_id,
+            ).fetch_one(&database).await.unwrap();
+
             let owner_id_u64 = owner_id as u64;
             let guild_id_u64 = guild_id as u64;
 
             let data_to_set = GuildSettings {
-                prefix: "-".to_string(),
+                prefix: fetched_guild.prefix,
                 owner_id: owner_id_u64,
-                mute_type: "timeout".to_string(),
-                mute_role: 0
+                mute_type: fetched_guild.mute_style.to_string(),
+                mute_role: fetched_guild.mute_role_id.unwrap_or_default() as u64
             };
 
             {

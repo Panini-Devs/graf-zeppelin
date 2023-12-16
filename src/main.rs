@@ -10,6 +10,7 @@ use reqwest::Client as Reqwest;
 use tokio;
 use serenity::http::Http;
 use serenity::prelude::*;
+use tracing::info;
 use utilities::global_data::*;
 use crate::handlers::event_handler::event_handler::Handler;
 use tracing::error;
@@ -20,6 +21,7 @@ mod utilities;
 
 use crate::commands::math::*;
 use crate::commands::utilities::*;
+use crate::commands::info::*;
 use crate::commands::owner::*;
 
 #[group]
@@ -27,7 +29,7 @@ use crate::commands::owner::*;
 struct General;
 
 #[group]
-#[commands(ping)]
+#[commands(about, ping, guild)]
 struct Info;
 
 #[group]
@@ -106,12 +108,12 @@ async fn main() {
         .owners(owners)
         .dynamic_prefix(|ctx, msg| {
             Box::pin(async move {
-                if msg.is_private() { // if private message, return default prefix
+                if msg.is_private() { 
+                    // if private message, return default prefix
                     Some("-".to_string())
                 } else {
                     // if guild message, return guild prefix
                     // implement guild settings hashmap and return prefix
-
                     let prefix = {
                         let data = ctx.data.read().await;
                         let guild_settings = data.get::<GuildSettingsContainer>().unwrap();
@@ -131,7 +133,7 @@ async fn main() {
                                     (i64::from(guild.id), i64::from(guild.owner_id))
                                 };
 
-                                sqlx::query!(
+                                let results = sqlx::query!(
                                     "INSERT INTO guild_settings (
                                         guild_id,
                                         prefix,
@@ -140,7 +142,9 @@ async fn main() {
                                     guild_id,
                                     "-",
                                     owner_id
-                                ).execute(&database).await.unwrap();
+                                ).execute(&database).await.unwrap().rows_affected();
+
+                                info!("Created new guild settings entry for guild {guild_id}, {results} rows affected");
 
                                 "-".to_string()
                             }
