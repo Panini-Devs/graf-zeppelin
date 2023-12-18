@@ -133,6 +133,8 @@ async fn main() {
                                     (i64::from(guild.id), i64::from(guild.owner_id))
                                 };
 
+                                // create new guild settings into sqlite database as a failsafe 
+                                //in case guild_join did not load properly
                                 let results = sqlx::query!(
                                     "INSERT INTO guild_settings (
                                         guild_id,

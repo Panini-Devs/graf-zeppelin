@@ -198,7 +198,7 @@ async fn prefix(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 #[lacking_role = "Nothing"]
 #[wrong_channel = "Strike"]
 #[no_help_available_text("No help information available.")]
-#[individual_command_tip = "Hello! こんにちは！Hola! Bonjour! 您好! 안녕하세요~\n\n\
+#[individual_command_tip = "Hello! こんにちは! Hola! Bonjour! 您好! 안녕하세요~\n\n\
 If you want more information about a specific command, just pass the command as argument."]
 async fn help(ctx: &Context, msg: &Message, args: Args, opts: &'static HelpOptions, groups: &[&'static CommandGroup], owners: HashSet<UserId>) -> CommandResult {
     let _ = help_commands::with_embeds(ctx, msg, args, opts, groups, owners).await;
