@@ -1,7 +1,7 @@
-use serenity::{all::User, client::Context, Error};
+use serenity::{all::{Member, GuildId}, client::Context, Error};
 
 
-pub async fn parse_user(text: &str, context: &Context) -> Result<User, Error> {
+pub async fn parse_user(text: &str, context: &Context, guild_id: GuildId) -> Result<Member, Error> {
 
     let to_trim: &[_] = &['<', '@', '!', '>'];
     
@@ -9,7 +9,7 @@ pub async fn parse_user(text: &str, context: &Context) -> Result<User, Error> {
 
     let id = stripped.parse().unwrap();
 
-    let user = context.http.get_user(id).await;
+    let member = context.http.get_member(guild_id, id).await?;
 
-    user
+    Ok(member)
 }
