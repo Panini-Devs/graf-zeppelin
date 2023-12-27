@@ -74,7 +74,7 @@ async fn kick(context: &Context, message: &Message, mut args: Args) -> CommandRe
 
     let text = args.single::<String>().unwrap();
 
-    let mut reason = args.single::<String>().unwrap_or("No reason provided.".to_string());
+    let mut reason = args.remains().unwrap_or("No reason provided.").to_string();
 
     reason.push_str(format!(" | banned by {}", message.author.id).as_str());
 
