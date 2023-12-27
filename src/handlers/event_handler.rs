@@ -108,7 +108,8 @@ pub mod event_handler {
                 prefix: fetched_guild.prefix,
                 owner_id: owner_id_u64,
                 mute_type: fetched_guild.mute_style.to_string(),
-                mute_role: fetched_guild.mute_role_id.unwrap_or_default() as u64
+                mute_role: fetched_guild.mute_role_id.unwrap_or_default() as u64,
+                default_mute_duration: fetched_guild.mute_duration as u64
             };
 
             {

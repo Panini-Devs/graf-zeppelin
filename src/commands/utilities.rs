@@ -155,7 +155,8 @@ async fn prefix(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             prefix: set.clone(),
             owner_id: msg.author.id.get(),
             mute_type: "timeout".to_string(),
-            mute_role: 0
+            mute_role: 0,
+            default_mute_duration: 60000
         };
 
         let guild_setting = lock.entry(msg.guild_id.unwrap().get()).or_insert(setting);

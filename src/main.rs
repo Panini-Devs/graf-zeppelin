@@ -185,7 +185,8 @@ async fn main() {
             prefix: guild_setting.prefix,
             owner_id: guild_setting.owner_id as u64,
             mute_type: guild_setting.mute_style,
-            mute_role: guild_setting.mute_role_id.unwrap_or_default() as u64
+            mute_role: guild_setting.mute_role_id.unwrap_or_default() as u64,
+            default_mute_duration: guild_setting.mute_duration as u64
         };
 
         guild_settings_map.insert(guild_id, guild_settings);
