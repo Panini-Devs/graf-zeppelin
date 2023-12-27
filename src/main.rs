@@ -26,15 +26,15 @@ use crate::commands::owner::*;
 use crate::commands::moderation::*;
 
 #[group]
-#[commands(multiply, quit)]
+#[commands(multiply, ping, quit)]
 struct General;
 
 #[group]
-#[commands(about, ping, guild)]
+#[commands(about, guild, user_info)]
 struct Info;
 
 #[group]
-#[commands(ban)]
+#[commands(ban, kick)]
 struct Moderation;
 
 #[group]
@@ -105,8 +105,8 @@ async fn main() {
         .help(&HELP)
         .group(&GENERAL_GROUP)
         .group(&INFO_GROUP)
-        .group(&SETTINGS_GROUP)
-        .group(&MODERATION_GROUP);
+        .group(&MODERATION_GROUP)
+        .group(&SETTINGS_GROUP);
 
     // Configure the client with the appropriate options
     framework.configure(
