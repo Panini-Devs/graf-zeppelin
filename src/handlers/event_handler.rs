@@ -182,7 +182,8 @@ pub mod event_handler {
                     loop {
                         set_activity(&ctx2, guilds.len());
                         tokio::time::sleep(Duration::from_secs(3)).await;
-                        
+                        set_ad(&ctx2);
+                        tokio::time::sleep(Duration::from_secs(3)).await;
                     }
                 });
     
@@ -200,6 +201,12 @@ pub mod event_handler {
         let presence = format!("Monitoring a total of {guild_count} guilds | -help");
         
         ctx.set_activity(Some(ActivityData::playing(presence)));
+    }
+
+    fn set_ad(ctx: &Context) {
+        let presence = format!("On Shard {} | Flottenstützpunkt Hamburg", ctx.shard_id.to_string());
+        
+        ctx.set_activity(Some(ActivityData::listening(presence)));
     }
     
 }
