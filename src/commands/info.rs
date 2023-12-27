@@ -6,13 +6,15 @@ use serenity::{
     builder::{CreateEmbed, CreateEmbedFooter, CreateMessage, CreateEmbedAuthor},
     client::Context,
     framework::standard::{macros::command, CommandResult},
-    model::prelude::Message, all::{ChannelType, VerificationLevel, MfaLevel, ExplicitContentFilter, PremiumTier}
+    model::prelude::Message, all::{ChannelType, VerificationLevel, MfaLevel, ExplicitContentFilter, PremiumTier, PremiumType}
 };
 
 use std::fmt::Write;
 
 #[command]
 #[aliases("info", "botinfo")]
+#[description = "Shows information about the bot."]
+#[max_args(0)]
 async fn about(context: &Context, message: &Message) -> CommandResult {
     let repo = Repository::open(env!("CARGO_MANIFEST_DIR"))?;
 
@@ -61,6 +63,7 @@ async fn about(context: &Context, message: &Message) -> CommandResult {
 #[description = "Shows various information about the current guild."]
 #[aliases("guild", "guildinfo", "ginfo", "server", "serverinfo", "serverstats", "sinfo")]
 #[only_in(guilds)]
+#[max_args(0)]
 async fn guild(context: &Context, message: &Message) -> CommandResult {
     let cache = &context.cache;
     let guild_id = message.guild_id.unwrap();
@@ -160,6 +163,87 @@ async fn guild(context: &Context, message: &Message) -> CommandResult {
         .footer(CreateEmbedFooter::new(format!("{guild_name} server ID: {guild_id}")));
 
     message.channel_id.send_message(&context, CreateMessage::new().embed(embed)).await?;
+
+    Ok(())
+}
+
+#[command]
+#[description = "Shows various information about a user."]
+#[aliases("user", "userinfo")]
+#[only_in("guilds")]
+#[usage = "@user"]
+async fn user_info(context: &Context, message: &Message) -> CommandResult {
+    let user = match message.mentions.get(0) {
+        Some(user) => user,
+        None => &message.author
+    };
+    let user_id = user.id;
+    let user_name = user.tag();
+    let user_created = user.created_at();
+    let user_avatar = user.face();
+    let user_bot = user.bot;
+    let user_nitro = match user.premium_type {
+        PremiumType::None => "None",
+        PremiumType::NitroClassic => "Nitro Classic",
+        PremiumType::Nitro => "Nitro",
+        PremiumType::NitroBasic => "Nitro Basic",
+        _ => "Unrecognized Premium Type"
+    };
+    let guild = message.guild(&context.cache).unwrap().clone();
+    let member = guild.member(&context.http, user_id).await.unwrap();
+
+    let embed = CreateEmbed::new()
+        .author(CreateEmbedAuthor::new(user_name.clone()).icon_url(user_avatar))
+        .thumbnail(guild.icon_url().unwrap().to_string())
+        .description(format!("Showing information about user {user_name}"))
+        .field("ID", user_id.to_string(), true)
+        .field("Created at", user_created.to_string(), true)
+        .field("Is bot", user_bot.to_string(), true)
+        .field("Joined server at", member.joined_at.unwrap().to_string(), true)
+        .field("Nitro Subscription", user_nitro, true)
+        .footer(CreateEmbedFooter::new(format!("User ID: {user_id}")));
+
+    message.channel_id.send_message(&context, CreateMessage::new().embed(embed)).await?;
+
+    Ok(())
+}
+
+#[command]
+#[description = "Shows all of a user's profile pictures."]
+#[aliases("profile", "avatar")]
+#[only_in("guilds")]
+#[usage = "@user"]
+async fn user_avatars(context: &Context, message: &Message) -> CommandResult {
+    let user = match message.mentions.get(0) {
+        Some(user) => user,
+        None => &message.author
+    };
+    let user_id = user.id;
+    let user_name = user.tag();
+    let guild = message.guild(&context.cache).unwrap().clone();
+    let guild_avatar = guild.member(&context.http, user_id).await.unwrap().clone().avatar_url().unwrap_or("".to_string());
+
+    if !guild_avatar.is_empty() { 
+        let embed = CreateEmbed::new()
+            .author(CreateEmbedAuthor::new(user_name.clone()).icon_url(user.face()))
+            .description(format!("Showing profile pictures of {}", user_name.clone()))
+            .image(user.face());
+
+        let embed2 = CreateEmbed::new()
+            .author(CreateEmbedAuthor::new(user_name.clone()).icon_url(guild_avatar.clone()))
+            .description(format!("Showing profile pictures of {}", user_name.clone()))
+            .image(guild_avatar.clone());
+
+        message.channel_id.send_message(&context, CreateMessage::new().embeds(vec![embed, embed2])).await?;
+
+    } else { 
+        let embed = CreateEmbed::new()
+            .author(CreateEmbedAuthor::new(user_name.clone()).icon_url(user.face()))
+            .description(format!("Showing profile pictures of {user_name}"))
+            .image(user.face());
+
+        message.channel_id.send_message(&context, CreateMessage::new().embed(embed)).await?;
+    }
 
     Ok(())
 }

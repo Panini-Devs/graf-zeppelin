@@ -23,14 +23,19 @@ use crate::commands::math::*;
 use crate::commands::utilities::*;
 use crate::commands::info::*;
 use crate::commands::owner::*;
+use crate::commands::moderation::*;
 
 #[group]
-#[commands(multiply, quit)]
+#[commands(multiply, ping, quit)]
 struct General;
 
 #[group]
-#[commands(about, ping, guild)]
+#[commands(about, guild, user_info)]
 struct Info;
+
+#[group]
+#[commands(ban, kick)]
+struct Moderation;
 
 #[group]
 #[commands(prefix)]
@@ -100,6 +105,7 @@ async fn main() {
         .help(&HELP)
         .group(&GENERAL_GROUP)
         .group(&INFO_GROUP)
+        .group(&MODERATION_GROUP)
         .group(&SETTINGS_GROUP);
 
     // Configure the client with the appropriate options
@@ -133,6 +139,8 @@ async fn main() {
                                     (i64::from(guild.id), i64::from(guild.owner_id))
                                 };
 
+                                // create new guild settings into sqlite database as a failsafe 
+                                //in case guild_join did not load properly
                                 let results = sqlx::query!(
                                     "INSERT INTO guild_settings (
                                         guild_id,
