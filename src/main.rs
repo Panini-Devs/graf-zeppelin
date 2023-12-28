@@ -24,7 +24,10 @@ use crate::commands::utilities::*;
 use crate::commands::info::*;
 use crate::commands::owner::*;
 use crate::commands::moderation::*;
+use crate::commands::neko::*;
 
+
+/// Grouping the commands into structs to set the categories and prefix if applicable
 #[group]
 #[commands(multiply, ping, quit)]
 struct General;
@@ -34,12 +37,17 @@ struct General;
 struct Info;
 
 #[group]
-#[commands(ban, kick)]
+#[commands(ban, kick, mute)]
 struct Moderation;
 
 #[group]
 #[commands(prefix)]
 struct Settings;
+
+#[group]
+#[prefix = "neko"]
+#[commands(random, catgirl, weapon)]
+struct Neko;
 
 #[tokio::main]
 async fn main() {
@@ -79,6 +87,8 @@ async fn main() {
     // Run migrations, which updates the database's schema to the latest version.
     sqlx::migrate!("./migrations").run(&database).await.expect("Couldn't run database migrations");
 
+
+    // Create a new instance of the Handler struct with the database
     let handler = Handler {
         database,
         is_loop_running: AtomicBool::new(false),
@@ -106,27 +116,28 @@ async fn main() {
         .group(&GENERAL_GROUP)
         .group(&INFO_GROUP)
         .group(&MODERATION_GROUP)
-        .group(&SETTINGS_GROUP);
+        .group(&SETTINGS_GROUP)
+        .group(&NEKO_GROUP);
 
     // Configure the client with the appropriate options
     framework.configure(
         Configuration::new()
         .owners(owners)
-        .dynamic_prefix(|ctx, msg| {
+        .dynamic_prefix(|context, message| {
             Box::pin(async move {
-                if msg.is_private() { 
+                if message.is_private() { 
                     // if private message, return default prefix
                     Some("-".to_string())
                 } else {
                     // if guild message, return guild prefix
                     // implement guild settings hashmap and return prefix
                     let prefix = {
-                        let data = ctx.data.read().await;
+                        let data = context.data.read().await;
                         let guild_settings = data.get::<GuildSettingsContainer>().unwrap();
                         let pf = guild_settings.read().await;
                         let database = data.get::<DatabaseConnectionContainer>().unwrap().clone();
 
-                        match pf.get(&msg.guild_id.unwrap().get()) {
+                        match pf.get(&message.guild_id.unwrap().get()) {
                             Some(guild) => guild.prefix.clone(),
                             None => {
                                 
@@ -134,13 +145,13 @@ async fn main() {
                                 // create new database entry and return default prefix
 
                                 let (guild_id, owner_id) = {
-                                    let guild = msg.guild(&ctx.cache).unwrap();
+                                    let guild = message.guild(&context.cache).unwrap();
                                 
                                     (i64::from(guild.id), i64::from(guild.owner_id))
                                 };
 
                                 // create new guild settings into sqlite database as a failsafe 
-                                //in case guild_join did not load properly
+                                // in case guild_join did not load properly
                                 let results = sqlx::query!(
                                     "INSERT INTO guild_settings (
                                         guild_id,
@@ -167,11 +178,13 @@ async fn main() {
         .on_mention(Some(bot_id))
     );
 
+    // Create the client
     let mut client =
         Client::builder(&token, intents)
         .framework(framework)
         .event_handler(handler).await.expect("Err creating client");
 
+    // Initiate guild settings
     let guild_settings = sqlx::query!("SELECT * FROM guild_settings")
         .fetch_all(&connection)
         .await
@@ -185,14 +198,17 @@ async fn main() {
             prefix: guild_setting.prefix,
             owner_id: guild_setting.owner_id as u64,
             mute_type: guild_setting.mute_style,
-            mute_role: guild_setting.mute_role_id.unwrap_or_default() as u64
+            mute_role: guild_setting.mute_role_id.unwrap_or_default() as u64,
+            default_mute_duration: guild_setting.mute_duration as u64
         };
 
         guild_settings_map.insert(guild_id, guild_settings);
     }
 
+    // Initiate reqwest Client
     let reqwest_client = Reqwest::new();
 
+    // Insert all global variables into client data
     {
         let mut data = client.data.write().await;
         data.clear();
@@ -202,13 +218,16 @@ async fn main() {
         data.insert::<ReqwestClientContainer>(Arc::new(reqwest_client));
     }
 
+    // Setup shard manager
     let shard_manager = client.shard_manager.clone();
 
+    // Start shard manager
     tokio::spawn(async move {
         tokio::signal::ctrl_c().await.expect("Could not register ctrl+c handler");
         shard_manager.shutdown_all().await;
     });
 
+    // Start the client
     if let Err(why) = client.start().await {
         error!("Client error: {:?}", why);
     }
