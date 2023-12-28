@@ -135,9 +135,7 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
 
     let text = args.single::<String>().unwrap();
 
-    let mut time = args.single::<u128>().unwrap_or(3600);
-
-    time *= 1000;
+    let mut time = args.single::<u128>().unwrap_or(0);
 
     if time < 1 {
         let data = context.data.read().await;
@@ -147,6 +145,12 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
         let pf = settings.read().await;
 
         time = pf.get(&message.guild_id.unwrap().get()).unwrap().default_mute_duration as u128;
+    }
+    
+    time *= 1000;
+
+    if time > 2419000000 {
+        time = 2419000000;
     }
 
     let unix_epoch = SystemTime::now()

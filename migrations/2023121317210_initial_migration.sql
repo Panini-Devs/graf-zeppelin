@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS guild_settings (
     welcome_message TEXT,
     prefix TEXT NOT NULL DEFAULT "-",
     mute_style TEXT NOT NULL DEFAULT "timeout",
-    mute_duration INTEGER NOT NULL DEFAULT 60000,
+    mute_duration INTEGER NOT NULL DEFAULT 3600,
     mute_role_id BIGINT,
     boosts INTEGER NOT NULL DEFAULT 0,
     boost_rewards_enabled INTEGER NOT NULL DEFAULT 0, -- role ids (to account for lists of roles) will be stored in another table
