@@ -10,7 +10,7 @@ use crate::utilities::{parsing, global_data::GuildSettingsContainer};
 #[command]
 #[usage = "<@member> <reason>"]
 #[description = "Bans the given member from the server."]
-#[required_permissions("BAN_MEMBERS")]
+#[required_permissions(BAN_MEMBERS)]
 #[only_in(guilds)]
 #[min_args(1)]
 /// Bans the given member from the server.
@@ -68,7 +68,7 @@ async fn ban(context: &Context, message: &Message, mut args: Args) -> CommandRes
 #[command]
 #[usage = "<@member> <reason>"]
 #[description = "Kicks the given member from the server."]
-#[required_permissions("KICK_MEMBERS")]
+#[required_permissions(KICK_MEMBERS)]
 #[only_in(guilds)]
 #[min_args(1)]
 /// Kicks the given member from the server.
@@ -127,7 +127,7 @@ async fn kick(context: &Context, message: &Message, mut args: Args) -> CommandRe
 #[command]
 #[usage = "<@member> <reason>"]
 #[description = "Mutes the given member for a given / default duration."]
-#[required_permissions("MODERATE_MEMBERS")]
+#[required_permissions(MODERATE_MEMBERS)]
 #[only_in(guilds)]
 #[min_args(1)]
 /// Mutes the given member for a given / default duration.
@@ -135,7 +135,7 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
 
     let text = args.single::<String>().unwrap();
 
-    let mut time = args.single::<u64>().unwrap_or(0);
+    let mut time = args.single::<u128>().unwrap_or(3600);
 
     time *= 1000;
 
@@ -146,7 +146,7 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
 
         let pf = settings.read().await;
 
-        time = pf.get(&message.guild_id.unwrap().get()).unwrap().default_mute_duration as u64;
+        time = pf.get(&message.guild_id.unwrap().get()).unwrap().default_mute_duration as u128;
     }
 
     let unix_epoch = SystemTime::now()
@@ -154,7 +154,7 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
         .expect("Failed to get unix epoch time")
         .as_millis();
 
-    time += unix_epoch as u64;
+    time += unix_epoch;
 
     let timestamp = serenity::model::Timestamp::from_millis(time as i64).unwrap();
 
@@ -178,7 +178,7 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
 
     let create_message = CreateMessage::new()
         .embeds(vec![dm_embed])
-        .content("The ban hammer has spoken.");
+        .content("Timeout");
 
     let dm = member.user.dm(&context.http, create_message).await;
 
@@ -200,7 +200,7 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
         }
     }
 
-    message.reply(&context.http, format!("Muted {}", member.user.tag())).await?;
+    message.reply(&context.http, format!("Muted {} for {}", member.user.tag(), reason)).await?;
 
     Ok(())
 

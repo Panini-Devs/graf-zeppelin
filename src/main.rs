@@ -24,6 +24,7 @@ use crate::commands::utilities::*;
 use crate::commands::info::*;
 use crate::commands::owner::*;
 use crate::commands::moderation::*;
+use crate::commands::neko::*;
 
 #[group]
 #[commands(multiply, ping, quit)]
@@ -34,12 +35,17 @@ struct General;
 struct Info;
 
 #[group]
-#[commands(ban, kick)]
+#[commands(ban, kick, mute)]
 struct Moderation;
 
 #[group]
 #[commands(prefix)]
 struct Settings;
+
+#[group]
+#[prefix = "neko"]
+#[commands(random, catgirl)]
+struct Neko;
 
 #[tokio::main]
 async fn main() {
@@ -106,27 +112,28 @@ async fn main() {
         .group(&GENERAL_GROUP)
         .group(&INFO_GROUP)
         .group(&MODERATION_GROUP)
-        .group(&SETTINGS_GROUP);
+        .group(&SETTINGS_GROUP)
+        .group(&NEKO_GROUP);
 
     // Configure the client with the appropriate options
     framework.configure(
         Configuration::new()
         .owners(owners)
-        .dynamic_prefix(|ctx, msg| {
+        .dynamic_prefix(|context, message| {
             Box::pin(async move {
-                if msg.is_private() { 
+                if message.is_private() { 
                     // if private message, return default prefix
                     Some("-".to_string())
                 } else {
                     // if guild message, return guild prefix
                     // implement guild settings hashmap and return prefix
                     let prefix = {
-                        let data = ctx.data.read().await;
+                        let data = context.data.read().await;
                         let guild_settings = data.get::<GuildSettingsContainer>().unwrap();
                         let pf = guild_settings.read().await;
                         let database = data.get::<DatabaseConnectionContainer>().unwrap().clone();
 
-                        match pf.get(&msg.guild_id.unwrap().get()) {
+                        match pf.get(&message.guild_id.unwrap().get()) {
                             Some(guild) => guild.prefix.clone(),
                             None => {
                                 
@@ -134,13 +141,13 @@ async fn main() {
                                 // create new database entry and return default prefix
 
                                 let (guild_id, owner_id) = {
-                                    let guild = msg.guild(&ctx.cache).unwrap();
+                                    let guild = message.guild(&context.cache).unwrap();
                                 
                                     (i64::from(guild.id), i64::from(guild.owner_id))
                                 };
 
                                 // create new guild settings into sqlite database as a failsafe 
-                                //in case guild_join did not load properly
+                                // in case guild_join did not load properly
                                 let results = sqlx::query!(
                                     "INSERT INTO guild_settings (
                                         guild_id,

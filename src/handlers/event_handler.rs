@@ -25,7 +25,7 @@ pub mod event_handler {
         //
         // Event handlers are dispatched through a threadpool, and so multiple events can be dispatched
         // simultaneously.
-        async fn message(&self, _ctx: Context, msg: Message) {
+        async fn message(&self, _context: Context, msg: Message) {
             // TODO: add advanced command handler + database connection
 
             // ignore all bots, including the bot itself
@@ -38,7 +38,7 @@ pub mod event_handler {
 
             if content == "<@!1183487567094632638>" || content == "<@1183487567094632638>" {
                 let prefix = {
-                    let data = _ctx.data.read().await;
+                    let data = _context.data.read().await;
                     let guild_settings = data.get::<GuildSettingsContainer>().unwrap();
                     let pf = guild_settings.read().await;
                     pf.get(&msg.guild_id.unwrap().get()).unwrap().prefix.clone()
@@ -53,30 +53,30 @@ pub mod event_handler {
                 .allowed_mentions(CreateAllowedMentions::new().users(vec![msg.author.id]))
                 .reference_message(&msg);
 
-                msg.channel_id.send_message(&_ctx, builder).await.unwrap();
+                msg.channel_id.send_message(&_context, builder).await.unwrap();
             }
         }
 
-        async fn thread_create(&self, ctx: Context, thread: GuildChannel) {
-            if let Err(err) = thread.id.join_thread(ctx.http).await {
+        async fn thread_create(&self, context: Context, thread: GuildChannel) {
+            if let Err(err) = thread.id.join_thread(context.http).await {
                 let thread_id = thread.id;
                 info!("Failed to succesfully join thread (ID: {thread_id}): {err}")
             } else {
                 let name = &thread.name;
-                let guild = &thread.guild(&ctx.cache).unwrap().name;
+                let guild = &thread.guild(&context.cache).unwrap().name;
                 let id = thread.id.get();
                 info!("Joined new thread: {name} (Server: {guild}, ID: {id})")
             }
         }
 
-        async fn guild_create(&self, ctx: Context, guild: Guild, _: Option<bool>) {
+        async fn guild_create(&self, context: Context, guild: Guild, _: Option<bool>) {
             // write into database and hashmap
             info!("Connected to guild: {}", guild.name);
             info!("Guild ID: {}", guild.id);
             info!("Guild Owner ID: {}", guild.owner_id);
             info!("Guild Members: {}", guild.member_count);
 
-            let data = ctx.data.read().await;
+            let data = context.data.read().await;
             let database = data.get::<DatabaseConnectionContainer>().unwrap().clone();
             let (guild_id, owner_id) = {
                 let guild_id = i64::from(guild.id);
@@ -120,12 +120,12 @@ pub mod event_handler {
             info!("Guild settings set complete for guild {}", guild.name);
         }
 
-        async fn guild_delete(&self, ctx: Context, _: UnavailableGuild, g: Option<Guild>) {
+        async fn guild_delete(&self, context: Context, _: UnavailableGuild, g: Option<Guild>) {
             let guild = g.unwrap();
             info!("Left guild: {}", guild.name);
             // write into database and hashmap
             {
-                let data = ctx.data.read().await;
+                let data = context.data.read().await;
                 let database = data.get::<DatabaseConnectionContainer>().unwrap().clone();
                 let guild_id = i64::from(guild.id);
                 sqlx::query!(
@@ -162,12 +162,12 @@ pub mod event_handler {
             info!("Connected to and serving a total of {guild_count} guild(s).");
         }
 
-        async fn cache_ready(&self, ctx: Context, guilds: Vec<GuildId>) {
+        async fn cache_ready(&self, context: Context, guilds: Vec<GuildId>) {
             println!("Cache built successfully!");
     
             // It's safe to clone Context, but Arc is cheaper for this use case.
             // Untested claim, just theoretically. :P
-            let ctx = Arc::new(ctx);
+            let context = Arc::new(context);
     
             // We need to check that the loop is not already running when this event triggers, as this
             // event triggers every time the bot enters or leaves a guild, along every time the ready
@@ -178,12 +178,12 @@ pub mod event_handler {
             if !self.is_loop_running.load(Ordering::Relaxed) {
     
                 // And of course, we can run more than one thread at different timings.
-                let ctx2 = Arc::clone(&ctx);
+                let context2 = Arc::clone(&context);
                 tokio::spawn(async move {
                     loop {
-                        set_activity(&ctx2, guilds.len());
+                        set_activity(&context2, guilds.len());
                         tokio::time::sleep(Duration::from_secs(3)).await;
-                        set_ad(&ctx2);
+                        set_ad(&context2);
                         tokio::time::sleep(Duration::from_secs(3)).await;
                     }
                 });
@@ -198,16 +198,16 @@ pub mod event_handler {
         }
     }
 
-    fn set_activity(ctx: &Context, guild_count: usize) {
+    fn set_activity(context: &Context, guild_count: usize) {
         let presence = format!("Monitoring a total of {guild_count} guilds | -help");
         
-        ctx.set_activity(Some(ActivityData::playing(presence)));
+        context.set_activity(Some(ActivityData::playing(presence)));
     }
 
-    fn set_ad(ctx: &Context) {
-        let presence = format!("On Shard {} | Flottenstützpunkt Hamburg", ctx.shard_id.to_string());
+    fn set_ad(context: &Context) {
+        let presence = format!("On Shard {} | Flottenstützpunkt Hamburg", context.shard_id.to_string());
         
-        ctx.set_activity(Some(ActivityData::listening(presence)));
+        context.set_activity(Some(ActivityData::listening(presence)));
     }
     
 }
