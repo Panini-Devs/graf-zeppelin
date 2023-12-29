@@ -127,6 +127,7 @@ async fn kick(context: &Context, message: &Message, mut args: Args) -> CommandRe
 #[command]
 #[usage = "<@member> <reason>"]
 #[description = "Mutes the given member for a given / default duration."]
+#[aliases("timeout", "mute")]
 #[required_permissions(MODERATE_MEMBERS)]
 #[only_in(guilds)]
 #[min_args(1)]
