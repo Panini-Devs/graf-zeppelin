@@ -46,7 +46,7 @@ struct Settings;
 
 #[group]
 #[prefix = "neko"]
-#[commands(random, catgirl, weapon)]
+#[commands(random, catgirl, weapon, usagimimi)]
 struct Neko;
 
 #[tokio::main]

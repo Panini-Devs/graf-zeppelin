@@ -6,3 +6,4 @@ database.sqlite
 database.sqlite-wal
 database.sqlite-shm
 *.sqlite
+Secrets.toml

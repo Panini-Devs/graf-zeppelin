@@ -17,9 +17,7 @@ async fn random(context: &Context, message: &Message) -> CommandResult {
 
     let params = [
         ("rating", "safe"),
-        ("limit", "1"),
-        ("tag", "8"),
-        ("tag", "6")
+        ("limit", "1")
     ];
 
     let url = reqwest::Url::parse_with_params("https://api.nekosapi.com/v3/images/random", params).unwrap();
@@ -46,6 +44,11 @@ async fn random(context: &Context, message: &Message) -> CommandResult {
         }
     };
 
+    if data.items.len() == 0 {
+        message.reply(&context.http, "Failed to get image.").await?;
+        return Ok(());
+    }
+
     let image_url = data.items[0].image_url.clone();
     let id = data.items[0].id.clone();
 
@@ -53,7 +56,7 @@ async fn random(context: &Context, message: &Message) -> CommandResult {
         .embeds(vec![CreateEmbed::new()
             .image(image_url)
             .title("Random Neko Image!")
-            .description(id)
+            .description(id.to_string())
             .colour(0xff0055)
             .footer(CreateEmbedFooter::new("Powered by https://nekosapi.com"))]);
 
@@ -103,6 +106,11 @@ async fn catgirl(context: &Context, message: &Message) -> CommandResult {
         }
     };
 
+    if data.items.len() == 0 {
+        message.reply(&context.http, "Failed to get image.").await?;
+        return Ok(());
+    }
+
     let image_url = data.items[0].image_url.clone();
     let id = data.items[0].id.clone();
 
@@ -110,7 +118,7 @@ async fn catgirl(context: &Context, message: &Message) -> CommandResult {
         .embeds(vec![CreateEmbed::new()
             .image(image_url)
             .title("Catgirl Image!")
-            .description(id)
+            .description(id.to_string())
             .colour(0xff0055)
             .footer(CreateEmbedFooter::new("Powered by https://nekosapi.com"))]);
 
@@ -121,7 +129,7 @@ async fn catgirl(context: &Context, message: &Message) -> CommandResult {
 }
 
 #[command]
-#[description = "Sends an image of catgirl with weapon."]
+#[description = "Sends an image of anime character with weapon."]
 #[aliases("weapon", "w")]
 async fn weapon(context: &Context, message: &Message) -> CommandResult {
 
@@ -136,7 +144,6 @@ async fn weapon(context: &Context, message: &Message) -> CommandResult {
     let params = [
         ("limit", "1"),
         ("tag", "30"),
-        ("tag", "6"),
         ("rating", "safe")
     ];
 
@@ -162,6 +169,11 @@ async fn weapon(context: &Context, message: &Message) -> CommandResult {
         }
     };
 
+    if data.items.len() == 0 {
+        message.reply(&context.http, "Failed to get image.").await?;
+        return Ok(());
+    }
+
     let image_url = data.items[0].image_url.clone();
     let id = data.items[0].id.clone();
     
@@ -169,7 +181,7 @@ async fn weapon(context: &Context, message: &Message) -> CommandResult {
         .embeds(vec![CreateEmbed::new()
             .image(image_url)
             .title("Weapon Image!")
-            .description(id)
+            .description(id.to_string())
             .colour(0xff0055)
             .footer(CreateEmbedFooter::new("Powered by https://nekosapi.com"))]);
 
@@ -220,6 +232,11 @@ async fn usagimimi(context: &Context, message: &Message) -> CommandResult {
         }
     };
 
+    if data.items.len() == 0 {
+        message.reply(&context.http, "Failed to get image.").await?;
+        return Ok(());
+    }
+
     let image_url = data.items[0].image_url.clone();
     let id = data.items[0].id.clone();
     
@@ -227,7 +244,7 @@ async fn usagimimi(context: &Context, message: &Message) -> CommandResult {
         .embeds(vec![CreateEmbed::new()
             .image(image_url)
             .title("Usagimimi Image!")
-            .description(id)
+            .description(id.to_string())
             .colour(0xff0055)
             .footer(CreateEmbedFooter::new("Powered by https://nekosapi.com"))]);
 
