@@ -210,3 +210,41 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
     Ok(())
 
 }
+
+#[command]
+#[usage = "<@member> <reason>"]
+#[description = "Unmutes the given member."]
+#[aliases("untimeout", "unmute")]
+#[required_permissions(MODERATE_MEMBERS)]
+#[only_in(guilds)]
+#[min_args(1)]
+/// Unmutes the given member.
+async fn unmute(context: &Context, message: &Message, mut args: Args) -> CommandResult {
+
+    let text = args.single::<String>().unwrap();
+
+    let parsed = parsing::parse_user(&text, context, message.guild_id.unwrap()).await;
+
+    let member = match parsed {
+        Ok(member) => member,
+        Err(_) => {
+            message.reply(&context.http, "Cannot find member.").await?;
+            return Ok(());
+        }
+    };
+
+    let res = member.clone().enable_communication(&context.http).await;
+
+    match res {
+        Ok(_) => (),
+        Err(_) => {
+            message.reply(&context.http, "Failed to unmute member. Give the bots its needed perms / roles, then try again.").await?;
+            return Ok(());
+        }
+    }
+
+    message.reply(&context.http, format!("Unmuted {}", member.user.tag())).await?;
+
+    Ok(())
+
+}
