@@ -1,5 +1,6 @@
 use serenity::{framework::standard::{macros::command, CommandResult}, client::Context, all::Message, builder::{CreateMessage, CreateEmbed, CreateEmbedFooter}};
 //use tracing::info;
+//use tracing::info;
 use crate::utilities::{global_data::ReqwestClientContainer, containers::Items};
 
 #[command]
@@ -17,9 +18,7 @@ async fn random(context: &Context, message: &Message) -> CommandResult {
 
     let params = [
         ("rating", "safe"),
-        ("limit", "1"),
-        ("tag", "8"),
-        ("tag", "6")
+        ("limit", "1")
     ];
 
     let url = reqwest::Url::parse_with_params("https://api.nekosapi.com/v3/images/random", params).unwrap();
@@ -47,7 +46,7 @@ async fn random(context: &Context, message: &Message) -> CommandResult {
     };
 
     let image_url = data.items[0].image_url.clone();
-    let id = data.items[0].id.clone();
+    let id = data.items[0].id.clone().to_string();
 
     let embed = CreateMessage::new()
         .embeds(vec![CreateEmbed::new()
@@ -83,6 +82,8 @@ async fn catgirl(context: &Context, message: &Message) -> CommandResult {
 
     let url = reqwest::Url::parse_with_params("https://api.nekosapi.com/v3/images/random", params).unwrap();
 
+    //info!("{}", url);
+
     let res = request.get(url).send().await;
 
     let res = match res {
@@ -92,6 +93,8 @@ async fn catgirl(context: &Context, message: &Message) -> CommandResult {
             return Ok(());
         }
     };
+
+    // info!("{:?}", res.text().await?);
 
     let data = res.json::<Items>().await;
 
@@ -104,7 +107,7 @@ async fn catgirl(context: &Context, message: &Message) -> CommandResult {
     };
 
     let image_url = data.items[0].image_url.clone();
-    let id = data.items[0].id.clone();
+    let id = data.items[0].id.clone().to_string();
 
     let embed = CreateMessage::new()
         .embeds(vec![CreateEmbed::new()
@@ -163,7 +166,7 @@ async fn weapon(context: &Context, message: &Message) -> CommandResult {
     };
 
     let image_url = data.items[0].image_url.clone();
-    let id = data.items[0].id.clone();
+    let id = data.items[0].id.clone().to_string();
     
     let embed = CreateMessage::new()
         .embeds(vec![CreateEmbed::new()
@@ -221,7 +224,7 @@ async fn usagimimi(context: &Context, message: &Message) -> CommandResult {
     };
 
     let image_url = data.items[0].image_url.clone();
-    let id = data.items[0].id.clone();
+    let id = data.items[0].id.clone().to_string();
     
     let embed = CreateMessage::new()
         .embeds(vec![CreateEmbed::new()

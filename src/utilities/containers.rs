@@ -8,5 +8,5 @@ pub struct Items {
 #[derive(Deserialize, Clone)]
 pub struct Item {
     pub image_url : String,
-    pub id : String
+    pub id : u32
 }
