@@ -3,13 +3,19 @@ use std::env;
 use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
+use std::time::Duration;
+use handlers::hooks::after;
+use handlers::hooks::before;
+use handlers::hooks::dispatch_error;
 use serenity::framework::StandardFramework;
+use serenity::framework::standard::BucketBuilder;
 use serenity::framework::standard::Configuration;
 use serenity::framework::standard::macros::group;
 use reqwest::Client as Reqwest;
 use tokio;
 use serenity::http::Http;
 use serenity::prelude::*;
+use tokio::time::sleep;
 use tracing::info;
 use utilities::global_data::*;
 use crate::handlers::event_handler::event_handler::Handler;
@@ -37,7 +43,7 @@ struct General;
 struct Info;
 
 #[group]
-#[commands(ban, kick, mute)]
+#[commands(ban, kick, mute, unmute)]
 struct Moderation;
 
 #[group]
@@ -46,7 +52,7 @@ struct Settings;
 
 #[group]
 #[prefix = "neko"]
-#[commands(random, catgirl, weapon)]
+#[commands(random, catgirl, usagimimi)]
 struct Neko;
 
 #[tokio::main]
@@ -60,14 +66,7 @@ async fn main() {
     // In this case, a good default is setting the environment variable `RUST_LOG` to `debug`.
     tracing_subscriber::fmt::init();
 
-    let intents = GatewayIntents::GUILD_MESSAGES
-        | GatewayIntents::DIRECT_MESSAGES
-        | GatewayIntents::MESSAGE_CONTENT
-        | GatewayIntents::GUILD_MEMBERS
-        | GatewayIntents::GUILD_MODERATION
-        | GatewayIntents::GUILDS
-        | GatewayIntents::AUTO_MODERATION_CONFIGURATION
-        | GatewayIntents::AUTO_MODERATION_EXECUTION;
+    let intents = GatewayIntents::all();
 
     let http = Http::new(&token);
 
@@ -117,7 +116,11 @@ async fn main() {
         .group(&INFO_GROUP)
         .group(&MODERATION_GROUP)
         .group(&SETTINGS_GROUP)
-        .group(&NEKO_GROUP);
+        .group(&NEKO_GROUP)
+        .before(before)
+        .after(after)
+        .on_dispatch_error(dispatch_error)
+        .bucket("neko", BucketBuilder::default().delay(3)).await;
 
     // Configure the client with the appropriate options
     framework.configure(
@@ -227,8 +230,25 @@ async fn main() {
         shard_manager.shutdown_all().await;
     });
 
+    let manager = client.shard_manager.clone();
+
+    tokio::spawn(async move {
+        loop {
+            sleep(Duration::from_secs(30)).await;
+
+            let shard_runners = manager.runners.lock().await;
+
+            for (id, runner) in shard_runners.iter() {
+                println!(
+                    "Shard ID {} is {} with a latency of {:?}",
+                    id, runner.stage, runner.latency,
+                );
+            }
+        }
+    });
+
     // Start the client
-    if let Err(why) = client.start().await {
+    if let Err(why) = client.start_autosharded().await {
         error!("Client error: {:?}", why);
     }
 }

@@ -6,6 +6,14 @@ use serenity::{
 use tracing::error;
 
 #[hook]
+pub async fn before(_context: &Context, _message: &Message, _command: &str) -> bool {
+    
+    // TODO: Add handling for command counter
+
+    true
+}
+
+#[hook]
 pub async fn after(context: &Context, message: &Message, command: &str, error: CommandResult) {
     if let Err(why) = &error {
         error!("Error while running command {}", &command);
