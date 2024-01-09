@@ -1,5 +1,5 @@
 [package]
-name = "graf_zeppelin"
+name = "graf-zeppelin"
 version = "0.1.0-beta"
 edition = "2021"
 homepage = "https://github.com/panzer-chan/graf_zeppelin"
