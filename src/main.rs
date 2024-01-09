@@ -239,7 +239,7 @@ async fn main() {
             let shard_runners = manager.runners.lock().await;
 
             for (id, runner) in shard_runners.iter() {
-                println!(
+                info!(
                     "Shard ID {} is {} with a latency of {:?}",
                     id, runner.stage, runner.latency,
                 );
