@@ -10,7 +10,10 @@ pub async fn multiply(context: &Context, message: &Message, mut args: Args) -> C
 
     let product = one * two;
 
-    message.channel_id.say(&context.http, product.to_string()).await?;
+    message
+        .channel_id
+        .say(&context.http, product.to_string())
+        .await?;
 
     Ok(())
 }

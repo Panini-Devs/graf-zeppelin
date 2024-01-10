@@ -1,8 +1,8 @@
-use std::{sync::Arc, collections::HashMap};
-use tokio::sync::RwLock;
-use serenity::{gateway::ShardManager, prelude::TypeMapKey};
 use reqwest::Client;
+use serenity::{gateway::ShardManager, prelude::TypeMapKey};
 use sqlx::SqlitePool;
+use std::{collections::HashMap, sync::Arc};
+use tokio::sync::RwLock;
 
 pub struct ShardManagerContainer;
 pub struct ReqwestClientContainer;
@@ -14,9 +14,8 @@ pub struct GuildSettings {
     pub owner_id: u64,
     pub mute_type: String,
     pub mute_role: u64,
-    pub default_mute_duration: u64
+    pub default_mute_duration: u64,
 }
-
 
 impl TypeMapKey for ShardManagerContainer {
     type Value = Arc<ShardManager>;

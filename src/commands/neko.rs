@@ -1,28 +1,30 @@
-use serenity::{framework::standard::{macros::command, CommandResult}, client::Context, all::Message, builder::{CreateMessage, CreateEmbed, CreateEmbedFooter}};
+use serenity::{
+    all::Message,
+    builder::{CreateEmbed, CreateEmbedFooter, CreateMessage},
+    client::Context,
+    framework::standard::{macros::command, CommandResult},
+};
 //use tracing::info;
 //use tracing::info;
-use crate::utilities::{global_data::ReqwestClientContainer, containers::Items};
+use crate::utilities::{containers::Items, global_data::ReqwestClientContainer};
 
 #[command]
 #[description = "Sends random neko images."]
 #[aliases("random", "rand")]
 #[bucket = "neko"]
 async fn random(context: &Context, message: &Message) -> CommandResult {
-    
     let request = {
         let data = context.data.read().await;
 
         let request = data.get::<ReqwestClientContainer>().unwrap();
 
-        request.clone()  
+        request.clone()
     };
 
-    let params = [
-        ("rating", "safe"),
-        ("limit", "1")
-    ];
+    let params = [("rating", "safe"), ("limit", "1")];
 
-    let url = reqwest::Url::parse_with_params("https://api.nekosapi.com/v3/images/random", params).unwrap();
+    let url = reqwest::Url::parse_with_params("https://api.nekosapi.com/v3/images/random", params)
+        .unwrap();
 
     let res = request.get(url).send().await;
 
@@ -49,13 +51,12 @@ async fn random(context: &Context, message: &Message) -> CommandResult {
     let image_url = data.items[0].image_url.clone();
     let id = data.items[0].id.clone().to_string();
 
-    let embed = CreateMessage::new()
-        .embeds(vec![CreateEmbed::new()
-            .image(image_url)
-            .title("Random Neko Image!")
-            .description(id)
-            .colour(0xff0055)
-            .footer(CreateEmbedFooter::new("Powered by https://nekosapi.com"))]);
+    let embed = CreateMessage::new().embeds(vec![CreateEmbed::new()
+        .image(image_url)
+        .title("Random Neko Image!")
+        .description(id)
+        .colour(0xff0055)
+        .footer(CreateEmbedFooter::new("Powered by https://nekosapi.com"))]);
 
     message.channel_id.send_message(&context, embed).await?;
 
@@ -67,22 +68,18 @@ async fn random(context: &Context, message: &Message) -> CommandResult {
 #[aliases("catgirl", "cg")]
 #[bucket = "neko"]
 async fn catgirl(context: &Context, message: &Message) -> CommandResult {
-
     let request = {
         let data = context.data.read().await;
 
         let request = data.get::<ReqwestClientContainer>().unwrap();
 
-        request.clone()  
+        request.clone()
     };
 
-    let params = [
-        ("limit", "1"),
-        ("tag", "8"),
-        ("rating", "safe")
-    ];
+    let params = [("limit", "1"), ("tag", "8"), ("rating", "safe")];
 
-    let url = reqwest::Url::parse_with_params("https://api.nekosapi.com/v3/images/random", params).unwrap();
+    let url = reqwest::Url::parse_with_params("https://api.nekosapi.com/v3/images/random", params)
+        .unwrap();
 
     //info!("{}", url);
 
@@ -111,18 +108,16 @@ async fn catgirl(context: &Context, message: &Message) -> CommandResult {
     let image_url = data.items[0].image_url.clone();
     let id = data.items[0].id.clone().to_string();
 
-    let embed = CreateMessage::new()
-        .embeds(vec![CreateEmbed::new()
-            .image(image_url)
-            .title("Catgirl Image!")
-            .description(id)
-            .colour(0xff0055)
-            .footer(CreateEmbedFooter::new("Powered by https://nekosapi.com"))]);
+    let embed = CreateMessage::new().embeds(vec![CreateEmbed::new()
+        .image(image_url)
+        .title("Catgirl Image!")
+        .description(id)
+        .colour(0xff0055)
+        .footer(CreateEmbedFooter::new("Powered by https://nekosapi.com"))]);
 
     message.channel_id.send_message(&context, embed).await?;
 
     Ok(())
-
 }
 
 #[command]
@@ -130,22 +125,18 @@ async fn catgirl(context: &Context, message: &Message) -> CommandResult {
 #[aliases("usagimimi", "um")]
 #[bucket = "neko"]
 async fn usagimimi(context: &Context, message: &Message) -> CommandResult {
-
     let request = {
         let data = context.data.read().await;
 
         let request = data.get::<ReqwestClientContainer>().unwrap();
 
-        request.clone()  
+        request.clone()
     };
 
-    let params = [
-        ("limit", "1"),
-        ("tag", "36"),
-        ("rating", "safe")
-    ];
+    let params = [("limit", "1"), ("tag", "36"), ("rating", "safe")];
 
-    let url = reqwest::Url::parse_with_params("https://api.nekosapi.com/v3/images/random", params).unwrap();
+    let url = reqwest::Url::parse_with_params("https://api.nekosapi.com/v3/images/random", params)
+        .unwrap();
 
     let res = request.get(url).send().await;
 
@@ -169,17 +160,15 @@ async fn usagimimi(context: &Context, message: &Message) -> CommandResult {
 
     let image_url = data.items[0].image_url.clone();
     let id = data.items[0].id.clone().to_string();
-    
-    let embed = CreateMessage::new()
-        .embeds(vec![CreateEmbed::new()
-            .image(image_url)
-            .title("Usagimimi Image!")
-            .description(id)
-            .colour(0xff0055)
-            .footer(CreateEmbedFooter::new("Powered by https://nekosapi.com"))]);
+
+    let embed = CreateMessage::new().embeds(vec![CreateEmbed::new()
+        .image(image_url)
+        .title("Usagimimi Image!")
+        .description(id)
+        .colour(0xff0055)
+        .footer(CreateEmbedFooter::new("Powered by https://nekosapi.com"))]);
 
     message.channel_id.send_message(&context, embed).await?;
 
     Ok(())
-
 }

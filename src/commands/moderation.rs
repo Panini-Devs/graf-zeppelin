@@ -1,11 +1,12 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::utilities::{global_data::GuildSettingsContainer, parsing};
 use serenity::{
+    builder::{CreateEmbed, CreateMessage, EditChannel},
     client::Context,
     framework::standard::{macros::command, Args, CommandResult},
-    model::channel::Message, builder::{CreateEmbed, CreateMessage}
+    model::channel::Message,
 };
-use crate::utilities::{parsing, global_data::GuildSettingsContainer};
 
 #[command]
 #[usage = "<@member> <reason>"]
@@ -15,7 +16,6 @@ use crate::utilities::{parsing, global_data::GuildSettingsContainer};
 #[min_args(1)]
 /// Bans the given member from the server.
 async fn ban(context: &Context, message: &Message, mut args: Args) -> CommandResult {
-
     let text = args.single::<String>().unwrap();
 
     let mut reason = args.remains().unwrap_or("No reason provided.").to_string();
@@ -32,9 +32,11 @@ async fn ban(context: &Context, message: &Message, mut args: Args) -> CommandRes
         }
     };
 
-    let dm_embed = CreateEmbed::new()
-        .color(0x008b_0000)
-        .description(format!("You have been banned from {} for `{}`", message.guild_id.unwrap().to_string(), reason));
+    let dm_embed = CreateEmbed::new().color(0x008b_0000).description(format!(
+        "You have been banned from {} for `{}`",
+        message.guild_id.unwrap(),
+        reason
+    ));
 
     let create_message = CreateMessage::new()
         .embeds(vec![dm_embed])
@@ -45,7 +47,10 @@ async fn ban(context: &Context, message: &Message, mut args: Args) -> CommandRes
     match dm {
         Ok(_) => (),
         Err(_) => {
-            message.channel_id.say(&context.http, "Failed to send DM user.").await?;
+            message
+                .channel_id
+                .say(&context.http, "Failed to send DM user.")
+                .await?;
             //return Ok(());
         }
     }
@@ -55,12 +60,19 @@ async fn ban(context: &Context, message: &Message, mut args: Args) -> CommandRes
     match res {
         Ok(_) => (),
         Err(_) => {
-            message.reply(&context.http, "Failed to ban member. Give the bots its needed perms / roles, then try again.").await?;
+            message
+                .reply(
+                    &context.http,
+                    "Failed to ban member. Give the bots its needed perms / roles, then try again.",
+                )
+                .await?;
             return Ok(());
         }
     }
 
-    message.reply(&context.http, format!("Banned {}", member.user.tag())).await?;
+    message
+        .reply(&context.http, format!("Banned {}", member.user.tag()))
+        .await?;
 
     Ok(())
 }
@@ -73,7 +85,6 @@ async fn ban(context: &Context, message: &Message, mut args: Args) -> CommandRes
 #[min_args(1)]
 /// Kicks the given member from the server.
 async fn kick(context: &Context, message: &Message, mut args: Args) -> CommandResult {
-
     let text = args.single::<String>().unwrap();
 
     let mut reason = args.remains().unwrap_or("No reason provided.").to_string();
@@ -90,9 +101,11 @@ async fn kick(context: &Context, message: &Message, mut args: Args) -> CommandRe
         }
     };
 
-    let dm_embed = CreateEmbed::new()
-        .color(0x008b_0000)
-        .description(format!("You have been banned from {} for `{}`", message.guild_id.unwrap().to_string(), reason));
+    let dm_embed = CreateEmbed::new().color(0x008b_0000).description(format!(
+        "You have been banned from {} for `{}`",
+        message.guild_id.unwrap(),
+        reason
+    ));
 
     let create_message = CreateMessage::new()
         .embeds(vec![dm_embed])
@@ -103,7 +116,10 @@ async fn kick(context: &Context, message: &Message, mut args: Args) -> CommandRe
     match dm {
         Ok(_) => (),
         Err(_) => {
-            message.channel_id.say(&context.http, "Failed to send DM user.").await?;
+            message
+                .channel_id
+                .say(&context.http, "Failed to send DM user.")
+                .await?;
             //return Ok(());
         }
     }
@@ -118,10 +134,11 @@ async fn kick(context: &Context, message: &Message, mut args: Args) -> CommandRe
         }
     }
 
-    message.reply(&context.http, format!("Kicked {}", member.user.tag())).await?;
+    message
+        .reply(&context.http, format!("Kicked {}", member.user.tag()))
+        .await?;
 
     Ok(())
-
 }
 
 #[command]
@@ -133,7 +150,6 @@ async fn kick(context: &Context, message: &Message, mut args: Args) -> CommandRe
 #[min_args(1)]
 /// Mutes the given member for a given / default duration.
 async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandResult {
-
     let text = args.single::<String>().unwrap();
 
     let mut time = args.single::<u128>().unwrap_or(0);
@@ -145,9 +161,12 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
 
         let pf = settings.read().await;
 
-        time = pf.get(&message.guild_id.unwrap().get()).unwrap().default_mute_duration as u128;
+        time = pf
+            .get(&message.guild_id.unwrap().get())
+            .unwrap()
+            .default_mute_duration as u128;
     }
-    
+
     time *= 1000;
 
     if time > 2419000000 {
@@ -177,9 +196,11 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
         }
     };
 
-    let dm_embed = CreateEmbed::new()
-        .color(0x008b_0000)
-        .description(format!("You have been muted in {} for `{}`", message.guild_id.unwrap().to_string(), reason));
+    let dm_embed = CreateEmbed::new().color(0x008b_0000).description(format!(
+        "You have been muted in {} for `{}`",
+        message.guild_id.unwrap(),
+        reason
+    ));
 
     let create_message = CreateMessage::new()
         .embeds(vec![dm_embed])
@@ -190,12 +211,18 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
     match dm {
         Ok(_) => (),
         Err(_) => {
-            message.channel_id.say(&context.http, "Failed to send DM user.").await?;
+            message
+                .channel_id
+                .say(&context.http, "Failed to send DM user.")
+                .await?;
             //return Ok(());
         }
     }
 
-    let res = member.clone().disable_communication_until_datetime(&context.http, timestamp).await;
+    let res = member
+        .clone()
+        .disable_communication_until_datetime(&context.http, timestamp)
+        .await;
 
     match res {
         Ok(_) => (),
@@ -205,10 +232,14 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
         }
     }
 
-    message.reply(&context.http, format!("Muted {} for {}", member.user.tag(), reason)).await?;
+    message
+        .reply(
+            &context.http,
+            format!("Muted {} for {}", member.user.tag(), reason),
+        )
+        .await?;
 
     Ok(())
-
 }
 
 #[command]
@@ -220,7 +251,6 @@ async fn mute(context: &Context, message: &Message, mut args: Args) -> CommandRe
 #[min_args(1)]
 /// Unmutes the given member.
 async fn unmute(context: &Context, message: &Message, mut args: Args) -> CommandResult {
-
     let text = args.single::<String>().unwrap();
 
     let parsed = parsing::parse_user(&text, context, message.guild_id.unwrap()).await;
@@ -243,8 +273,44 @@ async fn unmute(context: &Context, message: &Message, mut args: Args) -> Command
         }
     }
 
-    message.reply(&context.http, format!("Unmuted {}", member.user.tag())).await?;
+    message
+        .reply(&context.http, format!("Unmuted {}", member.user.tag()))
+        .await?;
 
     Ok(())
+}
 
+#[command]
+#[description = "Creates slowmode in the given channel."]
+#[usage = "<seconds>"]
+#[aliases("slowmode", "sm")]
+#[required_permissions(MANAGE_CHANNELS)]
+#[only_in(guilds)]
+#[min_args(1)]
+/// Creates slowmode in the given channel.
+async fn slowmode(context: &Context, message: &Message, mut args: Args) -> CommandResult {
+    let seconds = args.single::<u16>().unwrap();
+
+    let channel = message.channel_id;
+
+    let edit = EditChannel::new().rate_limit_per_user(seconds);
+
+    let res = channel.edit(&context.http, edit).await;
+
+    match res {
+        Ok(_) => (),
+        Err(_) => {
+            message.reply(&context.http, "Failed to set slowmode. Give the bots its needed perms / roles, then try again.").await?;
+            return Ok(());
+        }
+    }
+
+    message
+        .reply(
+            &context.http,
+            format!("Set slowmode to {} seconds", seconds),
+        )
+        .await?;
+
+    Ok(())
 }

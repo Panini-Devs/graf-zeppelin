@@ -1,17 +1,21 @@
 use std::collections::HashSet;
 
-use serenity::builder::{CreateEmbed, EditMessage, CreateEmbedFooter, CreateMessage};
+use chrono::{Duration, Utc};
+use serenity::builder::{CreateEmbed, CreateEmbedFooter, CreateMessage, EditMessage};
 use serenity::framework::standard::macros::{command, help};
-use serenity::framework::standard::{CommandResult, help_commands, Args, HelpOptions, CommandGroup};
+use serenity::framework::standard::{
+    help_commands, Args, CommandGroup, CommandResult, HelpOptions,
+};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
-use chrono::{Duration, Utc};
 use tracing::info;
 
-use crate::utilities::global_data::{ShardManagerContainer, GuildSettingsContainer, GuildSettings, DatabaseConnectionContainer};
+use crate::utilities::global_data::{
+    DatabaseConnectionContainer, GuildSettings, GuildSettingsContainer, ShardManagerContainer,
+};
 
 #[command]
-#[description= "Checks Discord's API / message latency."]
+#[description = "Checks Discord's API / message latency."]
 #[max_args(0)]
 async fn ping(context: &Context, msg: &Message) -> CommandResult {
     let start = Utc::now();
@@ -26,7 +30,11 @@ async fn ping(context: &Context, msg: &Message) -> CommandResult {
     let shard_manager = match context_data.get::<ShardManagerContainer>() {
         Some(shard) => shard,
         None => {
-            msg.reply(context, "I encountered a problem while getting the shard manager.").await?;
+            msg.reply(
+                context,
+                "I encountered a problem while getting the shard manager.",
+            )
+            .await?;
             return Ok(());
         }
     };
@@ -49,7 +57,7 @@ async fn ping(context: &Context, msg: &Message) -> CommandResult {
                 "No latency information available".to_string()
             }
         }
-        None => "No data available at the moment.".to_string()
+        None => "No data available at the moment.".to_string(),
     };
 
     let response = format!(
@@ -58,7 +66,10 @@ async fn ping(context: &Context, msg: &Message) -> CommandResult {
         **Shard Response Time**: {shard_response}"
     );
 
-    let embed = CreateEmbed::new().color(0x008b_0000).title("Discord Latency Information").description(response);
+    let embed = CreateEmbed::new()
+        .color(0x008b_0000)
+        .title("Discord Latency Information")
+        .description(response);
     ping.edit(context, EditMessage::new().embed(embed)).await?;
 
     Ok(())
@@ -76,18 +87,26 @@ async fn prefix(context: &Context, msg: &Message, args: Args) -> CommandResult {
             .color(0x008b_0000)
             .title("Prefix")
             .description("The bot's default prefix is ```-```")
-            .footer(CreateEmbedFooter::new("Use `-setprefix <new prefix>` to change it in a server."));
+            .footer(CreateEmbedFooter::new(
+                "Use `-setprefix <new prefix>` to change it in a server.",
+            ));
 
-        msg.channel_id.send_message(context, CreateMessage::new().embed(embed)).await?;
+        msg.channel_id
+            .send_message(context, CreateMessage::new().embed(embed))
+            .await?;
 
         return Ok(());
     }
 
     let is_admin = {
-        let author = msg.guild_id.unwrap()
-            .member(&context.http, msg.author.id).await.unwrap()
-            .permissions(&context.cache).expect("Failed to get permissions").administrator();
-        author.clone()
+        msg.guild_id
+            .unwrap()
+            .member(&context.http, msg.author.id)
+            .await
+            .unwrap()
+            .permissions(&context.cache)
+            .expect("Failed to get permissions")
+            .administrator()
     };
 
     if !is_admin {
@@ -95,9 +114,13 @@ async fn prefix(context: &Context, msg: &Message, args: Args) -> CommandResult {
             .color(0x008b_0000)
             .title("Prefix")
             .description("You must be an administrator to use this command.")
-            .footer(CreateEmbedFooter::new("Use `-prefix <new prefix>` to change it in a server."));
+            .footer(CreateEmbedFooter::new(
+                "Use `-prefix <new prefix>` to change it in a server.",
+            ));
 
-        msg.channel_id.send_message(&context.http, CreateMessage::new().embed(embed)).await?;
+        msg.channel_id
+            .send_message(&context.http, CreateMessage::new().embed(embed))
+            .await?;
 
         return Ok(());
     }
@@ -117,30 +140,36 @@ async fn prefix(context: &Context, msg: &Message, args: Args) -> CommandResult {
             .color(0x008b_0000)
             .title("Prefix")
             .description(format!("The bot's default prefix is ```{guild_prefix}```"))
-            .footer(CreateEmbedFooter::new(format!("Use `{guild_prefix}prefix <new prefix>` to change it in a server.")));
+            .footer(CreateEmbedFooter::new(format!(
+                "Use `{guild_prefix}prefix <new prefix>` to change it in a server."
+            )));
 
-        msg.channel_id.send_message(context, CreateMessage::new().embed(embed)).await?;
+        msg.channel_id
+            .send_message(context, CreateMessage::new().embed(embed))
+            .await?;
 
         return Ok(());
     }
 
     let set = prefix.parse::<String>().unwrap();
 
-    if set.contains(" ") {
+    if set.contains(' ') {
         let embed = CreateEmbed::new()
             .color(0x008b_0000)
             .title("Prefix")
             .description("Prefixes cannot contain spaces.");
-        
+
         let builder = CreateMessage::new().embed(embed);
 
-        msg.channel_id.send_message(&context.http, builder).await.unwrap();
+        msg.channel_id
+            .send_message(&context.http, builder)
+            .await
+            .unwrap();
 
         return Ok(());
     }
 
     let new_prefix = {
-
         let guild_settings = {
             let data = context.data.read().await;
             let guild_settings = data.get::<GuildSettingsContainer>().unwrap();
@@ -156,14 +185,17 @@ async fn prefix(context: &Context, msg: &Message, args: Args) -> CommandResult {
             owner_id: msg.author.id.get(),
             mute_type: "timeout".to_string(),
             mute_role: 0,
-            default_mute_duration: 60000
+            default_mute_duration: 60000,
         };
 
         let guild_setting = lock.entry(msg.guild_id.unwrap().get()).or_insert(setting);
         guild_setting.prefix = set;
 
         let setted = &guild_setting.prefix;
-        info!("Prefix set to {setted} for guild {}", msg.guild_id.unwrap().get());
+        info!(
+            "Prefix set to {setted} for guild {}",
+            msg.guild_id.unwrap().get()
+        );
 
         guild_setting.prefix.clone()
     };
@@ -177,7 +209,11 @@ async fn prefix(context: &Context, msg: &Message, args: Args) -> CommandResult {
             "UPDATE guild_settings SET prefix = ? WHERE guild_id = ?",
             new_prefix,
             guild_id
-        ).execute(&database).await.unwrap().rows_affected();
+        )
+        .execute(&database)
+        .await
+        .unwrap()
+        .rows_affected();
 
         info!("Prefix set to {new_prefix} for guild {guild_id}, {info} rows affected");
     }
@@ -187,7 +223,9 @@ async fn prefix(context: &Context, msg: &Message, args: Args) -> CommandResult {
         .title("Prefix")
         .description(format!("Prefix set to ```{new_prefix}```"));
 
-    msg.channel_id.send_message(context, CreateMessage::new().embed(embed)).await?;
+    msg.channel_id
+        .send_message(context, CreateMessage::new().embed(embed))
+        .await?;
 
     Ok(())
 }
