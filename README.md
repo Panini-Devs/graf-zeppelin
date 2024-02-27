@@ -2,6 +2,8 @@
 
 <h2>MULTIPURPOSE DISCORD BOT</h2>
 
+Note that this project has a maintained fork written in poise: [Bismarck](https://github.com/Panini-Devs/bismarck). Therefore, this project will be archived.
+
 Still in the works. So please enjoy some folklore:
 
 <h2>Folklore</h2>
